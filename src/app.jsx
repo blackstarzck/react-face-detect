@@ -11,11 +11,11 @@ function App() {
   useEffect(() => {
     const loadModels = async () => {
       Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri("./models"),
-        faceapi.nets.faceLandmark68Net.loadFromUri("./models"),
-        faceapi.nets.faceRecognitionNet.loadFromUri("./models"),
-        faceapi.nets.faceExpressionNet.loadFromUri("./models"),
-        faceapi.nets.ageGenderNet.loadFromUri('./models')
+        faceapi.nets.tinyFaceDetector.loadFromUri(process.env.PUBLIC_URL+'/models'),
+        faceapi.nets.faceLandmark68Net.loadFromUri(process.env.PUBLIC_URL+'/models'),
+        faceapi.nets.faceRecognitionNet.loadFromUri(process.env.PUBLIC_URL+'/models'),
+        faceapi.nets.faceExpressionNet.loadFromUri(process.env.PUBLIC_URL+'/models'),
+        faceapi.nets.ageGenderNet.loadFromUri(process.env.PUBLIC_URL+'/models')
       ])
         .then( () => {
           detect()
@@ -29,19 +29,20 @@ function App() {
   const detect = async () => {
     const img = document.createElement("img");
     img.src = imgSrc;
-    const detection = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceExpressions()
-      .withAgeAndGender();
-      
-    const result = detection[0].expressions;
+    const detections = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions())
+    .withFaceLandmarks()
+    .withFaceExpressions()
+    .withAgeAndGender();
+
+    const genderResult = detections[0].gender;
+    const expResult = detections[0].expressions;
     const resultArray = [];
     let value;
 
-    console.log(detection)
+    console.log(detections)
 
     keyNames.map((key) => {
-      value = Math.round(result[`${key}`] * 100);
+      value = Math.round(expResult[`${key}`] * 100);
       resultArray.push({ key, value });
     });
 
@@ -53,6 +54,7 @@ function App() {
     let key = resultArray[0].key;
     let val = resultArray[0].value;
     obj[`${key}`] = val;
+    obj["gender"] = genderResult;
 
 
     console.log(resultArray)
